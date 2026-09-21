@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feliz Día de las Flores Amarillas</title>
+<style>
+  :root {
+    --bg-dark: #050505;
+    --yellow-1: #FFC400;
+    --yellow-2: #F5A300;
+    --brown-dark: #2A1500;
+    --green-1: #2E7D32;
+    --green-2: #66BB6A;
+    --pink-cello: rgba(255, 170, 190, 0.35);
+    --gold: #E8B830;
+    --cyan: #8FE8FF;
+    --beige: #CFC6B0;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background: var(--bg-dark);
+    background: linear-gradient(180deg, #050505 0%, #0a1208 80%, #051005 100%);
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+    color: #fff;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* === PANTALLA DE INICIO CON MENSAJE === */
+  #intro-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(15, 10, 0, 0.95), rgba(0, 0, 0, 0.98));
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    transition: opacity 1.5s ease, visibility 1.5s;
+    padding: 30px 20px;
+  }
+
+  #intro-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .intro-message {
+    max-width: 500px;
+    margin-bottom: 40px;
+  }
+
+  .intro-message h2 {
+    font-size: 1.6rem;
+    font-style: italic;
+    font-weight: 400;
+    color: #FFD700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .intro-message p {
+    font-size: 1.1rem;
+    color: #EAEAEA;
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  .intro-subtext {
+    font-size: 0.9rem;
+    color: #666;
+    font-family: 'Courier New', Courier, monospace;
+    animation: pulse 2s infinite;
+    letter-spacing: 1px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.05); }
+  }
+
+  .scene {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* TEXTOS */
+  .texts {
+    position: absolute;
+    top: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 10;
+    width: 90%;
+    opacity: 1;
+  }
+
+  h1 {
+    font-size: clamp(1.4rem, 5vw, 1.8rem);
+    font-style: italic;
+    font-weight: 600;
+    background: linear-gradient(to right, var(--yellow-1), #A4F600);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 15px rgba(102, 187, 106, 0.4);
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+    color: var(--cyan);
+    text-shadow: 0 0 10px rgba(143, 232, 255, 0.6);
+    font-style: italic;
+  }
+
+  /* CANVAS FX */
+  #fx-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  /* CONTENEDORES DE ANIMACIÓN */
+  .zoom-wrapper {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    overflow: visible;
+    transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  .sway-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-origin: bottom center;
+    overflow: visible;
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.15));
+  }
+
+  .bouquet-svg {
+    width: 100%;
+    height: 100%;
+    max-height: 100vh;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    display: block;
+    object-fit: contain;
+  }
+
+  /* ANIMACIONES */
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  .sprout {
+    transform-origin: 200px 520px;
+    transform: scale(0);
+    animation: growSprout 2s ease-out forwards;
+  }
+
+  @keyframes growSprout {
+    to { transform: scale(1); }
+  }
+
+  .flower {
+    transform-origin: center;
+    transform-box: fill-box;
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+
+  .grass-blade {
+    transform-origin: bottom center;
+    animation: swayGrass 4s ease-in-out infinite alternate;
+  }
+
+  @keyframes swayGrass {
+    from { transform: rotate(-5deg); }
+    to { transform: rotate(5deg); }
+  }
+
+  .sway-wrapper.active {
+    animation: swayBouquet 6s ease-in-out infinite alternate;
+  }
+
+  @keyframes swayBouquet {
+    from { transform: rotate(-2deg); }
+    to { transform: rotate(2deg); }
+  }
+
+  .zoom-wrapper.active {
+    transform: scale(1.18) translateY(4%);
+  }
+
+  /* BOTÓN FLOTANTE */
+  .float-btn {
+    position: absolute;
+    right: 20px;
+    bottom: 80px;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: 26px;
+    cursor: pointer;
+    opacity: 0;
+    z-index: 15;
+    box-shadow: 0 0 15px rgba(232, 184, 48, 0.4);
+    transition: transform 0.3s, opacity 0.5s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .float-btn.visible {
+    opacity: 1;
+    animation: pulseGold 2s infinite;
+  }
+
+  .float-btn:hover {
+    transform: scale(1.1);
+  }
+
+  @keyframes pulseGold {
+    0%, 100% { box-shadow: 0 0 10px rgba(232, 184, 48, 0.4); }
+    50% { box-shadow: 0 0 25px rgba(232, 184, 48, 0.8); }
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-card {
+    background: rgba(20, 20, 20, 0.85);
+    border: 1px solid var(--gold);
+    border-radius: 24px;
+    width: 85%;
+    max-width: 360px;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 0 30px rgba(232, 184, 48, 0.2);
+    transform: scale(0.9);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+  }
+
+  .modal-overlay.active .modal-card {
+    transform: scale(1);
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: var(--gold);
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .carousel-container {
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  .card-slide {
+    min-width: 100%;
+    text-align: center;
+  }
+
+  .illustration-box {
+    width: 100%;
+    height: 150px;
+    border-radius: 16px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .card-title {
+    color: var(--gold);
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+
+  .card-text {
+    color: var(--beige);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    font-style: italic;
+    padding: 0 5px;
+  }
+
+  .dots-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .dot.active {
+    width: 24px;
+    background: var(--gold);
+  }
+
+  .swipe-hint {
+    color: rgba(255,255,255,0.3);
+    font-size: 0.7rem;
+    margin-top: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- PANTALLA DE INICIO CON MENSAJE -->
+<div id="intro-screen">
+  <div class="intro-message">
+    <h2>Tenía este detalle guardado para ti</h2>
+    <p>No quise regalarte un ramo de flores normales, porque con el tiempo se marchitan…</p>
+    <p style="margin-top: 15px;">Así que decidí hacerte unas yo mismo</p>
+  </div>
+  <div class="intro-subtext">Toca la pantalla para verlas </div>
+</div>
+
+<div class="scene">
+  <div class="texts">
+    <h1>Feliz día de las flores amarillas</h1>
+  </div>
+
+  <canvas id="fx-canvas"></canvas>
+
+  <div class="zoom-wrapper" id="zoomWrapper">
+    <div class="sway-wrapper" id="swayWrapper">
+      <svg class="bouquet-svg" viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Degradado Pétalos Exteriores -->
+          <linearGradient id="petalGradOut" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#FFD700" />
+            <stop offset="60%" stop-color="#FFC400" />
+            <stop offset="100%" stop-color="#E58A00" />
+          </linearGradient>
+          
+          <!-- Degradado Pétalos Interiores -->
+          <linearGradient id="petalGradIn" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#FFF59D" />
+            <stop offset="80%" stop-color="#FFD54F" />
+            <stop offset="100%" stop-color="#FFB300" />
+          </linearGradient>
+
+          <!-- Patrón de Semillas Realista -->
+          <pattern id="seeds" width="4.5" height="4.5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <circle cx="2.25" cy="2.25" r="1.2" fill="#1A0E00" />
+            <circle cx="0" cy="0" r="0.8" fill="#3E1F00" />
+            <circle cx="4.5" cy="0" r="0.8" fill="#3E1F00" />
+            <circle cx="0" cy="4.5" r="0.8" fill="#3E1F00" />
+            <circle cx="4.5" cy="4.5" r="0.8" fill="#3E1F00" />
+          </pattern>
+
+          <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#4a2500" />
+            <stop offset="100%" stop-color="#1a0a00" />
+          </radialGradient>
+
+          <!-- Degradado Celofán -->
+          <linearGradient id="celloGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(255, 200, 215, 0.15)" />
+            <stop offset="100%" stop-color="rgba(255, 170, 190, 0.6)" />
+          </linearGradient>
+
+          <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#66BB6A" />
+            <stop offset="100%" stop-color="#1B5E20" />
+          </linearGradient>
+
+          <!-- Filtro de brillo para las partículas mágicas -->
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          <!-- Símbolo de Girasol Mejorado -->
+          <symbol id="sunflower" viewBox="-50 -50 100 100">
+            <g>
+              <!-- Pétalos Exteriores (12) -->
+              <g>
+                <path d="M0,-25 C12,-40 15,-55 0,-58 C-15,-55 -12,-40 0,-25 Z" fill="url(#petalGradOut)" />
+                <path d="M0,-25 C12,-40 15,-55 0,-58 C-15,-55 -12,-40 0,-25 Z" fill="url(#petalGradOut)" transform="rotate(30)" />
+                <path d="M0,-25 C12,-40 15,-55 0,-58 C-15,-55 -12,-40 0,-25 Z" fill="url(#petalGradOut)" transform="rotate(60)" />
+                <path d="M0,-25 C12,-40 15,-55 0,-58 C-15,-55 -12,-40 0,-25 Z" fill="url(#petalGradOut)" transform="rotate(90)" />
+                <path d="M0,-25 C12,-40 15,-55 0,-58 C-15,-55 -12,-40 0,-25 Z" fill="url(#petalGradOut)" transform="rotate(120)" />
+                <path d="M0,-25 C12,-40 15,-55 0,-58 C-15,-55 -12,-40 0,-25 Z" fill="url(#petalGradOut)" transform="rotate(150)" />
+                <path d="M0,-25 C12,-40 15,-55 0,-58 C-15,-55 -12,-40 0,-25 Z" fill="url(#petalGradOut)" transform="rotate(180)" />
+                <path d="M0,-25 C12,-40 15,-55 0,-58 C-15,-55 -12,-40 0,-25 Z" fill="url(#petalGradOut)" transform="rotate(210)" />
+                <path d="M0,-25 C12,-40 15,-55 0,-58 C-15,-55 -12,-40 0,-25 Z" fill="url(#petalGradOut)" transform="rotate(240)" />
+                <path d="M0,-25 C12,-40 15,-55 0,-58 C-15,-55 -12,-40 0,-25 Z" fill="url(#petalGradOut)" transform="rotate(270)" />
+                <path d="M0,-25 C12,-40 15,-55 0,-58 C-15,-55 -12,-40 0,-25 Z" fill="url(#petalGradOut)" transform="rotate(300)" />
+                <path d="M0,-25 C12,-40 15,-55 0,-58 C-15,-55 -12,-40 0,-25 Z" fill="url(#petalGradOut)" transform="rotate(330)" />
+              </g>
+              
+              <!-- Pétalos Interiores (12 desfasados) -->
+              <g opacity="0.9">
+                <path d="M0,-18 C8,-28 10,-38 0,-40 C-10,-38 -8,-28 0,-18 Z" fill="url(#petalGradIn)" transform="rotate(15)" />
+                <path d="M0,-18 C8,-28 10,-38 0,-40 C-10,-38 -8,-28 0,-18 Z" fill="url(#petalGradIn)" transform="rotate(45)" />
+                <path d="M0,-18 C8,-28 10,-38 0,-40 C-10,-38 -8,-28 0,-18 Z" fill="url(#petalGradIn)" transform="rotate(75)" />
+                <path d="M0,-18 C8,-28 10,-38 0,-40 C-10,-38 -8,-28 0,-18 Z" fill="url(#petalGradIn)" transform="rotate(105)" />
+                <path d="M0,-18 C8,-28 10,-38 0,-40 C-10,-38 -8,-28 0,-18 Z" fill="url(#petalGradIn)" transform="rotate(135)" />
+                <path d="M0,-18 C8,-28 10,-38 0,-40 C-10,-38 -8,-28 0,-18 Z" fill="url(#petalGradIn)" transform="rotate(165)" />
+                <path d="M0,-18 C8,-28 10,-38 0,-40 C-10,-38 -8,-28 0,-18 Z" fill="url(#petalGradIn)" transform="rotate(195)" />
+                <path d="M0,-18 C8,-28 10,-38 0,-40 C-10,-38 -8,-28 0,-18 Z" fill="url(#petalGradIn)" transform="rotate(225)" />
+                <path d="M0,-18 C8,-28 10,-38 0,-40 C-10,-38 -8,-28 0,-18 Z" fill="url(#petalGradIn)" transform="rotate(255)" />
+                <path d="M0,-18 C8,-28 10,-38 0,-40 C-10,-38 -8,-28 0,-18 Z" fill="url(#petalGradIn)" transform="rotate(285)" />
+                <path d="M0,-18 C8,-28 10,-38 0,-40 C-10,-38 -8,-28 0,-18 Z" fill="url(#petalGradIn)" transform="rotate(315)" />
+                <path d="M0,-18 C8,-28 10,-38 0,-40 C-10,-38 -8,-28 0,-18 Z" fill="url(#petalGradIn)" transform="rotate(345)" />
+              </g>
+              
+              <!-- Centro de la Flor -->
+              <circle cx="0" cy="0" r="16" fill="url(#centerGlow)" />
+              <circle cx="0" cy="0" r="16" fill="url(#seeds)" />
+              <circle cx="0" cy="0" r="16" fill="none" stroke="#0a0500" stroke-width="1" />
+              
+              <!-- Brillo Sutil en el centro -->
+              <circle cx="-5" cy="-5" r="5" fill="rgba(255,255,255,0.15)" />
+            </g>
+          </symbol>
+
+          <symbol id="leaf" viewBox="0 0 40 80">
+            <path d="M20,0 C35,20 35,50 20,80 C5,50 5,20 20,0 Z" fill="url(#leafGrad)" />
+            <path d="M20,0 C30,20 30,50 20,80" stroke="#1B5E20" stroke-width="0.5" fill="none" />
+            <path d="M20,20 L30,30 M20,35 L32,45 M20,50 L28,60" stroke="#1B5E20" stroke-width="0.5" fill="none" />
+            <path d="M20,20 L10,30 M20,35 L8,45 M20,50 L12,60" stroke="#1B5E20" stroke-width="0.5" fill="none" />
+          </symbol>
+        </defs>
+
+        <!-- PASTO BASE -->
+        <g class="grass-base">
+          <path d="M0,600 L0,550 Q50,540 50,560 Q100,530 100,560 L100,600 Z" fill="#0a1f0a" />
+          <path d="M400,600 L400,550 Q350,540 350,560 Q300,530 300,560 L300,600 Z" fill="#0a1f0a" />
+          
+          <g class="grass-blade" style="animation-delay: 0s">
+            <path d="M30,560 Q20,530 35,510" stroke="#2E7D32" stroke-width="2" fill="none" />
+            <path d="M35,560 Q45,530 30,520" stroke="#66BB6A" stroke-width="2" fill="none" />
+          </g>
+          <g class="grass-blade" style="animation-delay: 1s">
+            <path d="M60,560 Q50,520 65,500" stroke="#2E7D32" stroke-width="2" fill="none" />
+            <path d="M70,560 Q80,530 60,510" stroke="#66BB6A" stroke-width="2" fill="none" />
+          </g>
+          <g class="grass-blade" style="animation-delay: 0.5s">
+            <path d="M340,560 Q330,520 345,500" stroke="#2E7D32" stroke-width="2" fill="none" />
+            <path d="M350,560 Q360,530 340,510" stroke="#66BB6A" stroke-width="2" fill="none" />
+          </g>
+          <g class="grass-blade" style="animation-delay: 1.5s">
+            <path d="M370,560 Q360,530 375,510" stroke="#2E7D32" stroke-width="2" fill="none" />
+            <path d="M380,560 Q390,540 370,520" stroke="#66BB6A" stroke-width="2" fill="none" />
+          </g>
+        </g>
+
+        <!-- RETOÑO (0-2s) -->
+        <g class="sprout">
+          <path d="M200,500 Q190,450 200,430" stroke="#66BB6A" stroke-width="3" fill="none" />
+          <path d="M200,470 Q180,460 175,445 Q190,455 200,470" fill="#2E7D32" />
+          <path d="M200,460 Q220,450 225,435 Q210,445 200,460" fill="#66BB6A" />
+          <path d="M200,440 Q190,425 200,410 Q210,425 200,440" fill="#2E7D32" />
+        </g>
+
+        <!-- HOJAS DEL RAMO -->
+        <g opacity="0.95">
+          <use href="#leaf" x="140" y="420" width="35" height="70" transform="rotate(-25 160 460)" />
+          <use href="#leaf" x="225" y="420" width="35" height="70" transform="rotate(25 240 460)" />
+          
+          <use href="#leaf" x="100" y="380" width="30" height="60" transform="rotate(-45 120 420)" />
+          <use href="#leaf" x="270" y="380" width="30" height="60" transform="rotate(45 280 420)" />
+          
+          <use href="#leaf" x="180" y="400" width="30" height="60" transform="rotate(0 200 440)" />
+        </g>
+
+        <!-- TALLOS (Distribuidos en abanico) -->
+        <g stroke="#2E7D32" stroke-width="3" fill="none" stroke-linecap="round">
+          <path d="M200,430 L200,280" />
+          <path d="M200,430 Q170,400 140,320" />
+          <path d="M200,430 Q230,400 260,320" />
+          <path d="M200,430 Q185,350 170,250" />
+          <path d="M200,430 Q215,350 230,250" />
+          <path d="M200,430 Q150,420 100,370" />
+          <path d="M200,430 Q250,420 300,370" />
+        </g>
+
+        <!-- CELÓFAN Y LAZO -->
+        <g>
+          <!-- Cono Principal -->
+          <path d="M140,350 Q200,550 260,350 L200,350 Z" fill="url(#celloGrad)" stroke="rgba(255,200,210,0.6)" stroke-width="1" />
+          
+          <!-- Pliegues Triangulares -->
+          <path d="M170,450 L200,550 L200,350 L185,380 Z" fill="rgba(255,170,190,0.5)" />
+          <path d="M230,450 L200,550 L200,350 L215,380 Z" fill="rgba(255,170,190,0.5)" />
+          
+          <path d="M140,350 L160,420 L180,350 Z" fill="rgba(255,170,190,0.2)" />
+          <path d="M260,350 L240,420 L220,350 Z" fill="rgba(255,170,190,0.2)" />
+
+          <!-- Moño/Lazo Dorado -->
+          <g transform="translate(200, 430)">
+            <path d="M-25,-5 Q-40,-25 -15,-30 Q0,-10 0,5 Z" fill="#E8B830" />
+            <path d="M25,-5 Q40,-25 15,-30 Q0,-10 0,5 Z" fill="#E8B830" />
+            <path d="M-25,-5 Q-40,-25 -15,-30 Q0,-10 0,5 Z" fill="none" stroke="#FFD700" stroke-width="0.5" />
+            <path d="M25,-5 Q40,-25 15,-30 Q0,-10 0,5 Z" fill="none" stroke="#FFD700" stroke-width="0.5" />
+            <circle cx="0" cy="0" r="10" fill="#FFD700" />
+            <circle cx="0" cy="0" r="10" fill="none" stroke="#BFA100" stroke-width="1" />
+            <!-- Colas del moño -->
+            <path d="M-5,10 Q-15,25 -10,35" stroke="#E8B830" stroke-width="3" fill="none" />
+            <path d="M5,10 Q15,25 10,35" stroke="#E8B830" stroke-width="3" fill="none" />
+          </g>
+          
+          <!-- Hojas base ramo -->
+          <path d="M160,460 Q120,480 140,500 Q160,490 160,460" fill="url(#leafGrad)" />
+          <path d="M240,460 Q280,480 260,500 Q240,490 240,460" fill="url(#leafGrad)" />
+        </g>
+
+        <!-- PARTÍCULAS MÁGICAS DE COLORES (Atrás de las flores) -->
+        <g id="magicParticles"></g>
+
+        <!-- GIRASOLES -->
+        <g id="sunflowersGroup">
+          <!-- Generados por JS -->
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <button class="float-btn" id="msgBtn">💌</button>
+</div>
+
+<!-- MODAL MENSAJES -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-card">
+    <button class="close-btn" id="closeBtn">×</button>
+    
+    <div class="carousel-container">
+      <div class="carousel-track" id="carouselTrack">
+        <div class="card-slide">
+          <div class="card-title">Para ti 🌻</div>
+          <div class="card-text">Te regalo este ramo de flores para que recuerdes que tú eres la razón por la que existen todas las demás.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // PANTALLA DE INICIO
+  const introScreen = document.getElementById('intro-screen');
+  const zoomWrapper = document.getElementById('zoomWrapper');
+  const swayWrapper = document.getElementById('swayWrapper');
+  const msgBtn = document.getElementById('msgBtn');
+  const modal = document.getElementById('modalOverlay');
+  let hasStarted = false;
+
+  introScreen.addEventListener('click', () => {
+    if (hasStarted) return;
+    hasStarted = true;
+    introScreen.classList.add('hidden');
+    startScene();
+  });
+
+  // GENERACIÓN DE PARTÍCULAS MÁGICAS (Colores elegantes detrás del ramo)
+  const particlesGroup = document.getElementById('magicParticles');
+  const particleColors = ['#FFD700', '#8FE8FF', '#FF99CC', '#FFF8E1', '#FFC400'];
+  for(let i=0; i<45; i++) {
+     const x = 100 + Math.random() * 200;
+     const y = 480 + Math.random() * 100;
+     const r = Math.random() * 2.5 + 1;
+     const color = particleColors[Math.floor(Math.random() * particleColors.length)];
+     const delay = Math.random() * 5;
+     const duration = 5 + Math.random() * 4;
+     const driftX = (Math.random() - 0.5) * 60;
+     
+     particlesGroup.innerHTML += `
+       <circle cx="${x}" cy="${y}" r="${r}" fill="${color}" filter="url(#glow)" opacity="0">
+         <animate attributeName="cy" from="${y}" to="${y - 350}" dur="${duration}s" begin="${delay}s" repeatCount="indefinite" />
+         <animate attributeName="opacity" values="0;0.9;0" dur="${duration}s" begin="${delay}s" repeatCount="indefinite" />
+         <animate attributeName="cx" values="${x};${x + driftX};${x}" dur="${duration}s" begin="${delay}s" repeatCount="indefinite" />
+       </circle>
+     `;
+  }
+
+  // GENERACIÓN DE GIRASOLES (Distribuidos para no amontonarse)
+  const sunflowersGroup = document.getElementById('sunflowersGroup');
+  const sunflowerData = [
+    { x: 200, y: 280, scale: 1.3, rot: 0, delay: 0 },
+    { x: 140, y: 320, scale: 1.1, rot: -15, delay: 500 },
+    { x: 260, y: 320, scale: 1.1, rot: 15, delay: 1000 },
+    { x: 170, y: 250, scale: 0.9, rot: -5, delay: 1500 },
+    { x: 230, y: 250, scale: 0.9, rot: 5, delay: 2000 },
+    { x: 100, y: 370, scale: 0.7, rot: -25, delay: 2500 },
+    { x: 300, y: 370, scale: 0.7, rot: 25, delay: 3000 }
+  ];
+
+  sunflowerData.forEach((f, i) => {
+    sunflowersGroup.innerHTML += `
+      <g class="flower" style="animation: bloom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; animation-delay: ${f.delay}ms; transform-origin: ${f.x}px ${f.y}px;">
+        <g transform="translate(${f.x}, ${f.y}) scale(${f.scale}) rotate(${f.rot})">
+          <use href="#sunflower" x="-50" y="-50" width="100" height="100" />
+        </g>
+      </g>
+    `;
+  });
+
+  const styleSheet = document.styleSheets[0];
+  styleSheet.insertRule(`
+    @keyframes bloom {
+      0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+      60% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+  `, styleSheet.cssRules.length);
+
+  // LÓGICA DE ANIMACIÓN PRINCIPAL
+  function startScene() {
+    swayWrapper.classList.add('active');
+    zoomWrapper.classList.add('active');
+    msgBtn.classList.add('visible');
+  }
+
+  // EL MODAL SE ABRE SOLO CON CLICK
+  msgBtn.addEventListener('click', openModal);
+  document.getElementById('closeBtn').addEventListener('click', closeModal);
+
+  function openModal() {
+    modal.classList.add('active');
+    resetCarousel();
+  }
+
+  function closeModal() {
+    modal.classList.remove('active');
+  }
+
+  // LUCIÉRNAGAS (CANVAS)
+  const canvas = document.getElementById('fx-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  class Firefly {
+    constructor() {
+      this.x = Math.random() * W;
+      this.y = Math.random() * H;
+      this.size = Math.random() * 2 + 1;
+      this.speedX = (Math.random() - 0.5) * 0.5;
+      this.speedY = (Math.random() - 0.5) * 0.5;
+      this.opacity = Math.random() * 0.5 + 0.3;
+      this.angle = Math.random() * Math.PI * 2;
+      this.flutterSpeed = Math.random() * 0.1 + 0.05;
+    }
+
+    update() {
+      this.angle += this.flutterSpeed;
+      this.x += this.speedX + Math.cos(this.angle) * 0.5;
+      this.y += this.speedY + Math.sin(this.angle) * 0.5;
+
+      if (this.x < 0) this.x = W;
+      if (this.x > W) this.x = 0;
+      if (this.y < 0) this.y = H;
+      if (this.y > H) this.y = 0;
+
+      this.opacity = 0.3 + Math.abs(Math.sin(this.angle)) * 0.5;
+    }
+
+    draw() {
+      ctx.save();
+      ctx.globalAlpha = this.opacity;
+      ctx.fillStyle = '#FFC400';
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#FFD700';
+      ctx.beginPath();
+      ctx.ellipse(this.x - this.size, this.y, this.size * 2, this.size, this.angle, 0, Math.PI * 2);
+      ctx.ellipse(this.x + this.size, this.y, this.size * 2, this.size, -this.angle, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  const fireflies = [];
+  for (let i = 0; i < 15; i++) {
+    fireflies.push(new Firefly());
+  }
+
+  function animateFx() {
+    ctx.clearRect(0, 0, W, H);
+    fireflies.forEach(f => {
+      f.update();
+      f.draw();
+    });
+    requestAnimationFrame(animateFx);
+  }
+  animateFx();
+
+  // MENSAJE ÚNICO, SIN CARRUSEL
+  const track = document.getElementById('carouselTrack');
+  const dots = document.querySelectorAll('.dot');
+
+  function resetCarousel() {
+    if (track) track.style.transform = 'translateX(0%)';
+    dots.forEach((dot) => dot.classList.remove('active'));
+    if (dots[0]) dots[0].classList.add('active');
+  }
+
+</script>
+</body>
+</html>
